@@ -1,0 +1,20 @@
+var TrackBuildXMLHeader = new Array(13);
+TrackBuildXMLHeader[0] = '<?xml version="1.0" encoding="utf-16"?>' + "\n";
+TrackBuildXMLHeader[1] = '<Track xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' + "\n";
+TrackBuildXMLHeader[2] = '  <gameVersion>1.4.7</gameVersion>' + "\n";
+TrackBuildXMLHeader[3] = '  <localID>' + "\n";
+TrackBuildXMLHeader[4] = '    <str>TrackID</str>' + "\n";
+TrackBuildXMLHeader[5] = '    <version>1</version>' + "\n";
+TrackBuildXMLHeader[6] = '    <type>TRACK</type>' + "\n";
+TrackBuildXMLHeader[7] = '  </localID>' + "\n";
+TrackBuildXMLHeader[8] = '  <name>TrackName</name>' + "\n";
+TrackBuildXMLHeader[9] = '  <description />' + "\n";
+TrackBuildXMLHeader[10] = '  <dependencies />' + "\n";
+TrackBuildXMLHeader[11] = '  <environment>TheDrawingBoard</environment>' + "\n";
+TrackBuildXMLHeader[12] = '  <blueprints>' + "\n";     
+
+var TrackBuildXMLFooter = new Array(4);
+TrackBuildXMLFooter[0] = '  </blueprints>' + "\n";
+TrackBuildXMLFooter[1] = '  <lastTrackItemID>-1</lastTrackItemID>' + "\n";
+TrackBuildXMLFooter[2] = '  <hideDefaultSpawnpoint>false</hideDefaultSpawnpoint>' + "\n";
+TrackBuildXMLFooter[3] = '</Track>' + "\n";

@@ -1,0 +1,381 @@
+<!doctype HTML>
+<html>
+ <head>
+  <meta charset="UTF-8"/>
+  <title>Liftoff Track Builder</title>
+  <style>
+
+   div.adjustDiv {
+    display: none;
+    border: 6px solid red;
+    padding: 0px;
+    margin: 0px;
+   }
+
+   div.XMLImportDiv {
+    display: block;
+    border: 6px solid red;
+    padding: 0px;
+    margin: 0px;
+    height: 100%;
+   }
+
+   div.partsList {
+    border: 6px solid red;
+    width: 250px;
+    height: 50vh;
+    padding: 0px;
+    margin: 0px;
+    float: left;
+    overflow-y: scroll;
+   }
+
+   div.codeOutline {
+    border: 6px solid red;
+    height: 50vh;
+    padding: 0px;
+    margin: 0px;
+    margin-left: 270px;
+   }
+
+
+   span.menu {
+    border: 4px solid black;
+    padding: 10px;
+    margin: 5px;
+   }
+
+   textarea {
+    width: 98%;
+    height: 98%;
+   }
+
+  </style>
+  <script type="text/javascript" src="defs.js"></script>
+  <script>
+
+   window.onload=function(){
+    readObjects();
+   }
+
+
+   //Code Globals
+     var defObjectNumber = 0;
+     var XMLParser = new DOMParser();
+     var trackDoc;
+     var importedTrack = [];
+   //JSON Code
+
+   function readObjects() {
+    for (var i = 0; i <  itemDefs.length; i++) {
+     document.getElementById('partsListTable').innerHTML += "<tr><td id=\"partNumber" + i + "\" >" + itemDefs[i].name + "</td></tr>";
+    }
+    for (var i = 0; i <  itemDefs.length; i++) {
+     document.getElementById("partNumber" + i).addEventListener("click", function() {showDef(this.id)});
+    }
+   }
+
+   function makeAdjustVisible() {
+    document.getElementById("adjustDiv").style.display = "block";
+    document.getElementById("XMLImportDiv").style.display = "none";
+   }
+
+   function makeXMLImportVisible() {
+    document.getElementById("XMLImportDiv").style.display = "block";
+    document.getElementById("adjustDiv").style.display = "none";
+   }
+
+
+   function showDef(evt) {
+    defObjectNumber = evt.substring(10, 10 + evt.length);
+    var itemDefsJSON = "";
+    itemDefsJSON = JSON.stringify(itemDefs[defObjectNumber]);
+    itemDefsJSON = itemDefsJSON.replace("[{", "[\n {");
+    itemDefsJSON = itemDefsJSON.replace(/},/gm, "},\n ");
+    itemDefsJSON = itemDefsJSON.replace(/}]/gm, "}\n]");
+    itemDefsJSON = itemDefsJSON.replace(/],/gm, "],\n ");
+    document.getElementById('JSONDef').value = itemDefsJSON;
+   }
+
+   function quickRound(num, precision = 0) {
+    var p = Math.pow(10, precision);
+    return Math.round(num * p) / p;
+   }
+
+   function readXMLTrack() {
+    var importItemID;
+    var importXPos;
+    var importYPos;
+    var importZPos;
+    var importXRot;
+    var importYRot;
+    var importZRot;
+    var importPurpose;
+    var importedTrackJSON;
+    importedTrack = [];
+    trackXMLIn = document.getElementById("XMLImport").value;
+    trackDoc = XMLParser.parseFromString(trackXMLIn,"text/xml");
+    for (var i = 0; i < trackDoc.getElementsByTagName("blueprints")[0].children.length; i++) {
+     if (trackDoc.getElementsByTagName("blueprints")[0].children[i].tagName == "TrackBlueprint") {
+      for (var j = 0; j < trackDoc.getElementsByTagName("blueprints")[0].children[i].children.length; j++) { 
+       if (trackDoc.getElementsByTagName("blueprints")[0].children[i].children[j].tagName == "itemID") {
+	importItemID = trackDoc.getElementsByTagName("blueprints")[0].children[i].children[j].textContent;
+       }
+       else if (trackDoc.getElementsByTagName("blueprints")[0].children[i].children[j].tagName == "position") {
+        for (var k = 0; k < trackDoc.getElementsByTagName("blueprints")[0].children[i].children[j].children.length; k++) {
+	 if (trackDoc.getElementsByTagName("blueprints")[0].children[i].children[j].children[k].tagName == "x") {
+	  importXPos = trackDoc.getElementsByTagName("blueprints")[0].children[i].children[j].children[k].textContent;
+	 }
+	 if (trackDoc.getElementsByTagName("blueprints")[0].children[i].children[j].children[k].tagName == "y") {
+	  importYPos = trackDoc.getElementsByTagName("blueprints")[0].children[i].children[j].children[k].textContent;
+	 }
+	 if (trackDoc.getElementsByTagName("blueprints")[0].children[i].children[j].children[k].tagName == "z") {
+	  importZPos = trackDoc.getElementsByTagName("blueprints")[0].children[i].children[j].children[k].textContent;
+	 }		  
+        }
+       }
+       else if (trackDoc.getElementsByTagName("blueprints")[0].children[i].children[j].tagName == "rotation") {
+        for (var k = 0; k < trackDoc.getElementsByTagName("blueprints")[0].children[i].children[j].children.length; k++) {
+         if (trackDoc.getElementsByTagName("blueprints")[0].children[i].children[j].children[k].tagName == "x") {
+          importXRot = trackDoc.getElementsByTagName("blueprints")[0].children[i].children[j].children[k].textContent;
+         }
+         if (trackDoc.getElementsByTagName("blueprints")[0].children[i].children[j].children[k].tagName == "y") {
+          importYRot = trackDoc.getElementsByTagName("blueprints")[0].children[i].children[j].children[k].textContent;
+         }
+         if (trackDoc.getElementsByTagName("blueprints")[0].children[i].children[j].children[k].tagName == "z") {
+          importZRot = trackDoc.getElementsByTagName("blueprints")[0].children[i].children[j].children[k].textContent;
+         }                
+        }
+       }
+       else if (trackDoc.getElementsByTagName("blueprints")[0].children[i].children[j].tagName == "purpose") {
+        importPurpose = trackDoc.getElementsByTagName("blueprints")[0].children[i].children[j].textContent;
+       }
+      }
+     }
+     importedTrack.push({"comment": "", "itemID": importItemID, "xpos": quickRound((Number(importXPos) + Number(document.getElementById("xImportAdjust").value)),3), "ypos": quickRound((Number(importYPos) + Number(document.getElementById("yImportAdjust").value)),3), "zpos": quickRound((Number(importZPos) + Number(document.getElementById("zImportAdjust").value)),3), "xrot": quickRound(Number(importXRot), 3), "yrot": quickRound(Number(importYRot), 3), "zrot": quickRound(Number(importZRot), 3), "purpose": "Functional"});
+    }
+    importedTrackJSON = JSON.stringify(importedTrack);
+    importedTrackJSON = importedTrackJSON.replace("[{", "[\n {");
+    importedTrackJSON = importedTrackJSON.replace(/},/gm, "},\n ");
+    importedTrackJSON = importedTrackJSON.replace("}]", "}\n]");
+    document.getElementById('XML2JSON').value = importedTrackJSON;
+   }
+
+
+   function updateItemDef() {
+    for (var i = 0; i < itemDefs[defObjectNumber].def.length; i++) {
+     var xPosVal = itemDefs[defObjectNumber].def[i].xpos;
+     var yPosVal = itemDefs[defObjectNumber].def[i].ypos;
+     var zPosVal = itemDefs[defObjectNumber].def[i].zpos;
+     var xRotVal = itemDefs[defObjectNumber].def[i].xrot;
+     var yRotVal = itemDefs[defObjectNumber].def[i].yrot;
+     var zRotVal = itemDefs[defObjectNumber].def[i].zrot;
+     itemDefs[defObjectNumber].def[i].xpos = quickRound(xPosVal + Number(document.getElementById("xAdjust").value), 3);
+     itemDefs[defObjectNumber].def[i].ypos = quickRound(yPosVal + Number(document.getElementById("yAdjust").value), 3);
+     itemDefs[defObjectNumber].def[i].zpos = quickRound(zPosVal + Number(document.getElementById("zAdjust").value), 3);
+     itemDefs[defObjectNumber].def[i].xrot = quickRound(xRotVal + Number(document.getElementById("xRotAdjust").value), 3);
+     itemDefs[defObjectNumber].def[i].yrot = quickRound(yRotVal + Number(document.getElementById("yRotAdjust").value), 3);
+     itemDefs[defObjectNumber].def[i].zrot = quickRound(zRotVal + Number(document.getElementById("zRotAdjust").value), 3);
+     if (itemDefs[defObjectNumber].def[i].xrot < 0) {itemDefs[defObjectNumber].def[i].xrot = (itemDefs[defObjectNumber].def[i].xrot + 360);} 
+     if (itemDefs[defObjectNumber].def[i].yrot < 0) {itemDefs[defObjectNumber].def[i].yrot = (itemDefs[defObjectNumber].def[i].yrot + 360);}
+     if (itemDefs[defObjectNumber].def[i].zrot < 0) {itemDefs[defObjectNumber].def[i].zrot = (itemDefs[defObjectNumber].def[i].zrot + 360);}
+     if (itemDefs[defObjectNumber].def[i].xrot > 359) {itemDefs[defObjectNumber].def[i].xrot = (itemDefs[defObjectNumber].def[i].xrot - 360);} 
+     if (itemDefs[defObjectNumber].def[i].yrot > 359) {itemDefs[defObjectNumber].def[i].yrot = (itemDefs[defObjectNumber].def[i].yrot - 360);}
+     if (itemDefs[defObjectNumber].def[i].zrot > 359) {itemDefs[defObjectNumber].def[i].zrot = (itemDefs[defObjectNumber].def[i].zrot - 360);}
+    }
+    var itemDefsJSON = "";
+    itemDefsJSON = JSON.stringify(itemDefs[defObjectNumber]);
+    itemDefsJSON = itemDefsJSON.replace("[{", "[\n {");
+    itemDefsJSON = itemDefsJSON.replace(/},/gm, "},\n ");
+    itemDefsJSON = itemDefsJSON.replace("}]", "}\n]");
+    document.getElementById('JSONDef').value = itemDefsJSON;
+   }
+
+   function XInvert() {
+    for (var i = 0; i < itemDefs[defObjectNumber].def.length; i++) {
+     var xPosVal = itemDefs[defObjectNumber].def[i].xpos;
+     itemDefs[defObjectNumber].def[i].xpos = ((xPosVal * 1000) * -1) / 1000;
+    }
+    var itemDefsJSON = "";
+    itemDefsJSON = JSON.stringify(itemDefs[defObjectNumber]);
+    itemDefsJSON = itemDefsJSON.replace("[{", "[\n {");
+    itemDefsJSON = itemDefsJSON.replace(/},/gm, "},\n ");
+    itemDefsJSON = itemDefsJSON.replace("}]", "}\n]");
+    document.getElementById('JSONDef').value = itemDefsJSON;
+   }
+
+   function YInvert() {
+    for (var i = 0; i < itemDefs[defObjectNumber].def.length; i++) {
+     var yPosVal = itemDefs[defObjectNumber].def[i].ypos;
+     itemDefs[defObjectNumber].def[i].ypos = ((yPosVal * 1000) * -1) / 1000;
+    }
+    var itemDefsJSON = "";
+    itemDefsJSON = JSON.stringify(itemDefs[defObjectNumber]);
+    itemDefsJSON = itemDefsJSON.replace("[{", "[\n {");
+    itemDefsJSON = itemDefsJSON.replace(/},/gm, "},\n ");
+    itemDefsJSON = itemDefsJSON.replace("}]", "}\n]");
+    document.getElementById('JSONDef').value = itemDefsJSON;
+   }
+
+   function ZInvert() {
+    for (var i = 0; i < itemDefs[defObjectNumber].def.length; i++) {
+     var zPosVal = itemDefs[defObjectNumber].def[i].zpos;
+     itemDefs[defObjectNumber].def[i].zpos = ((zPosVal * 1000) * -1) / 1000;
+    }
+    var itemDefsJSON = "";
+    itemDefsJSON = JSON.stringify(itemDefs[defObjectNumber]);
+    itemDefsJSON = itemDefsJSON.replace("[{", "[\n {");
+    itemDefsJSON = itemDefsJSON.replace(/},/gm, "},\n ");
+    itemDefsJSON = itemDefsJSON.replace("}]", "}\n]");
+    document.getElementById('JSONDef').value = itemDefsJSON;
+   }
+
+   function XRotInvert() {
+    for (var i = 0; i < itemDefs[defObjectNumber].def.length; i++) {
+     var xRotVal = itemDefs[defObjectNumber].def[i].xrot;
+     itemDefs[defObjectNumber].def[i].xrot = ((xRotVal * 1000) * -1) / 1000;
+     if (itemDefs[defObjectNumber].def[i].xrot < 0) {itemDefs[defObjectNumber].def[i].xrot = (itemDefs[defObjectNumber].def[i].xrot + 360);} 
+     if (itemDefs[defObjectNumber].def[i].xrot > 359) {itemDefs[defObjectNumber].def[i].xrot = (itemDefs[defObjectNumber].def[i].xrot - 360);} 
+    }
+    var itemDefsJSON = "";
+    itemDefsJSON = JSON.stringify(itemDefs[defObjectNumber]);
+    itemDefsJSON = itemDefsJSON.replace("[{", "[\n {");
+    itemDefsJSON = itemDefsJSON.replace(/},/gm, "},\n ");
+    itemDefsJSON = itemDefsJSON.replace("}]", "}\n]");
+    document.getElementById('JSONDef').value = itemDefsJSON;
+   }
+
+   function YRotInvert() {
+    for (var i = 0; i < itemDefs[defObjectNumber].def.length; i++) {
+     var yRotVal = itemDefs[defObjectNumber].def[i].yrot;
+     itemDefs[defObjectNumber].def[i].yrot = ((yRotVal * 1000) * -1) / 1000;
+     if (itemDefs[defObjectNumber].def[i].yrot < 0) {itemDefs[defObjectNumber].def[i].yrot = (itemDefs[defObjectNumber].def[i].yrot + 360);}
+     if (itemDefs[defObjectNumber].def[i].yrot > 359) {itemDefs[defObjectNumber].def[i].yrot = (itemDefs[defObjectNumber].def[i].yrot - 360);}
+
+    }
+    var itemDefsJSON = "";
+    itemDefsJSON = JSON.stringify(itemDefs[defObjectNumber]);
+    itemDefsJSON = itemDefsJSON.replace("[{", "[\n {");
+    itemDefsJSON = itemDefsJSON.replace(/},/gm, "},\n ");
+    itemDefsJSON = itemDefsJSON.replace("}]", "}\n]");
+    document.getElementById('JSONDef').value = itemDefsJSON;
+   }
+
+   function ZRotInvert() {
+    for (var i = 0; i < itemDefs[defObjectNumber].def.length; i++) {
+     var zRotVal = itemDefs[defObjectNumber].def[i].zrot;
+     itemDefs[defObjectNumber].def[i].zrot = ((zRotVal * 1000) * -1) / 1000;
+     if (itemDefs[defObjectNumber].def[i].zrot < 0) {itemDefs[defObjectNumber].def[i].zrot = (itemDefs[defObjectNumber].def[i].zrot + 360);} 
+     if (itemDefs[defObjectNumber].def[i].zrot > 359) {itemDefs[defObjectNumber].def[i].zrot = (itemDefs[defObjectNumber].def[i].zrot - 360);} 
+    }
+    var itemDefsJSON = "";
+    itemDefsJSON = JSON.stringify(itemDefs[defObjectNumber]);
+    itemDefsJSON = itemDefsJSON.replace("[{", "[\n {");
+    itemDefsJSON = itemDefsJSON.replace(/},/gm, "},\n ");
+    itemDefsJSON = itemDefsJSON.replace("}]", "}\n]");
+    document.getElementById('JSONDef').value = itemDefsJSON;
+   }
+
+
+
+
+   function swapXZ() {
+    for (var i = 0; i < itemDefs[defObjectNumber].def.length; i++) {
+     var xPosVal = itemDefs[defObjectNumber].def[i].xpos;
+     var zPosVal = itemDefs[defObjectNumber].def[i].zpos;		      
+     itemDefs[defObjectNumber].def[i].xpos = zPosVal;
+     itemDefs[defObjectNumber].def[i].zpos = xPosVal;
+    }
+    var itemDefsJSON = "";
+    itemDefsJSON = JSON.stringify(itemDefs[defObjectNumber]);
+    itemDefsJSON = itemDefsJSON.replace("[{", "[\n {");
+    itemDefsJSON = itemDefsJSON.replace(/},/gm, "},\n ");
+    itemDefsJSON = itemDefsJSON.replace("}]", "}\n]");
+    document.getElementById('JSONDef').value = itemDefsJSON;
+   }
+
+   function swapXY() {
+    for (var i = 0; i < itemDefs[defObjectNumber].def.length; i++) {
+     var xPosVal = itemDefs[defObjectNumber].def[i].xpos;
+     var yPosVal = itemDefs[defObjectNumber].def[i].ypos;                     
+     itemDefs[defObjectNumber].def[i].xpos = yPosVal;
+     itemDefs[defObjectNumber].def[i].ypos = xPosVal;
+    }
+    var itemDefsJSON = "";
+    itemDefsJSON = JSON.stringify(itemDefs[defObjectNumber]);
+    itemDefsJSON = itemDefsJSON.replace("[{", "[\n {");
+    itemDefsJSON = itemDefsJSON.replace(/},/gm, "},\n ");
+    itemDefsJSON = itemDefsJSON.replace("}]", "}\n]");
+    document.getElementById('JSONDef').value = itemDefsJSON;
+   }
+
+
+
+
+  </script>
+ </head>
+ <body>
+  <br />
+  <div>
+   <span class="menu" onClick="makeXMLImportVisible();">XML Import</span><span class="menu" onClick="makeAdjustVisible();">Adjust</span>
+  </div>
+  <br />
+  <div class="XMLImportDiv" id="XMLImportDiv">
+    <div id="XMLInput">
+     XML *.track contents:
+     <textarea id="XMLImport" rows="25" cols="50"></textarea>
+     <br /><br/>
+      XAdjust: <input type="number" id="xImportAdjust" name="xImportAdjust" step="0.1" min="-10000" max="10000" value="0">
+      YAdjust: <input type="number" id="yImportAdjust" name="yImportAdjust" step="0.1" min="-10000" max="10000" value="0">
+      ZAdjust: <input type="number" id="zImportAdjust" name="zImportAdjust" step="0.1" min="-10000" max="10000" value="0">
+      <button type="button" onclick="readXMLTrack()">Read Track</button>
+     <br /><br />
+    </div>
+    <div id="JSONDefIn">
+     JSON Out:
+     <textarea id="XML2JSON" rows="25" cols="50"></textarea>
+     <!-- <table id="JSONDefInTable">
+     </table> -->
+    </div>
+  </div>
+  <div class="adjustDiv" id="adjustDiv">
+   <div>
+    <span>Object Number:</span><span id="objectNum"></span>
+   </div>
+   <br />
+   <div class="partsList">
+    <table id="partsListTable">
+    </table>
+   </div>
+   <div class="codeOutline">
+    <textarea id="JSONDef" rows="25" cols="50"></textarea><br />
+   </div>
+   <br />
+   XAdjust: <input type="number" id="xAdjust" name="xAdjust" step="0.1" min="-10000" max="10000" value="0">
+   YAdjust: <input type="number" id="yAdjust" name="yAdjust" step="0.1" min="-10000" max="10000" value="0">
+   ZAdjust: <input type="number" id="zAdjust" name="zAdjust" step="0.1" min="-10000" max="10000" value="0">
+   <br /><br />
+   <button type="button" onclick="XInvert()">XInvert</button>
+   <button type="button" onclick="YInvert()">YInvert</button>
+   <button type="button" onclick="ZInvert()">ZInvert</button>
+   <button type="button" onclick="swapXZ()">SwapXZ</button>
+   <button type="button" onclick="swapXY()">SwapXY</button>
+   <br /><br/>
+   XRotationAdjust: <input type="number" id="xRotAdjust" name="xRotAdjust" step="0.1" min="-10000" max="10000" value="0">
+   YRotationAdjust: <input type="number" id="yRotAdjust" name="yRotAdjust" step="0.1" min="-10000" max="10000" value="0">
+   ZRotationAdjust: <input type="number" id="zRotAdjust" name="zRotAdjust" step="0.1" min="-10000" max="10000" value="0">
+
+<!--   XMirror (Experimental): <input type="button" name="xMirror" id="xMirror" onclick="turnOffXInvert()">
+   YMirror (Experimental): <input type="button" name="yMirror" id="yMirror" onclick="turnOffYInvert()">
+   ZMirror (Experimental): <input type="button" name="zMirror" id="zMirror" onclick="turnOffZInvert()"> -->
+   <br /><br />
+   <button type="button" onclick="XRotInvert()">XRotInvert</button>
+   <button type="button" onclick="YRotInvert()">YRotInvert</button>
+   <button type="button" onclick="ZRotInvert()">ZRotInvert</button>
+   <br /><br />
+   <button type="button" onclick="updateItemDef()">Update</button>
+   <br /><br/>
+
+  </div>
+ </body>
+</html>

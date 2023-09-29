@@ -1,0 +1,887 @@
+<!doctype HTML>
+<html>
+ <head>
+  <meta charset="UTF-8"/>
+  <title>Liftoff Track Builder</title>
+  <style>
+
+   @media (min-aspect-ratio: 8/5)
+   {
+    canvas.main {
+     width: 120vh;
+     height: 80vh;
+     border: none;
+     padding: 0px;
+     margin: 0px;
+    }
+
+    div.canvasOutline {
+     border: 6px solid red;
+     width: 120vh;
+     height: 80vh;
+     padding: 0px;
+     margin: 0px;
+     margin-left: 32vh;
+    }
+   }
+ 
+   @media (max-aspect-ratio: 8/5) 
+   {
+    canvas.main {
+     width: 80vh;
+     height: 80vh;
+     border: none;
+     padding: 0px;
+     margin: 0px;
+    }
+
+    div.canvasOutline {
+     border: 6px solid red;
+     width: 80vh;
+     height: 80vh;
+     padding: 0px;
+     margin: 0px;
+     margin-left: 32vh;
+    }
+   } 
+
+   html
+   {
+    margin:0px;
+    border:0px;
+    padding:0px;
+    height: 100%;
+    box-sizing: border-box;
+   }
+
+   body
+   {
+    position:relative;
+    left:0px;
+    top:0px;
+    margin:0px;
+    border:0px;
+    padding:0px;
+    background-color:#ffffff;
+    font-family:Arial, Helvetica, sans-serif;
+    font-size:2vh;
+    overflow-x: hidden;
+   }
+
+   div.menu {
+    display:block;
+    border: 0px;
+    margin: 0px;
+    padding: 0px;
+   }
+
+   ul#maintabs {
+    display:block;
+    position:relative;
+    vertical-align:text-bottom;
+    left:1vh;
+    height:100%;
+    text-align:left;
+    line-height:100%;
+    font-size:0px;
+    margin:0px;
+    margin-left:.75vh;
+    border:0px;
+    padding:0px;
+    list-style-type:none;
+   }
+
+   ul#maintabs li
+   {
+    display:inline;
+    margin:0;
+    margin-left:-1.75vh;
+    padding:0;
+   }
+
+   ul.maintabs {
+    display:inline-block;
+    padding:0px 3vh;
+    font-weight:bold;
+    font-size:2vh;
+    line-height:100%;
+    text-decoration:none;
+    color:#ffffff;
+    background: linear-gradient(to top, #7f0000, #ff0000);
+    outline:none;
+    border:.4vh solid #900000;
+    border-bottom:.5vh solid #800000;
+    border-radius:5vh 0px 0px 0px;
+    transition:border-color .3s linear
+   }
+
+   span.maintab {
+    display:inline-block;
+    padding:0px 3vh;
+    font-weight:bold;
+    font-size:2vh;
+    line-height:100%;
+    text-decoration:none;
+    color:#ffffff;
+    background: linear-gradient(to top, #7f0000, #ff0000);
+    outline:none;
+    border:.4vh solid #900000;
+    border-bottom:.5vh solid #800000;
+    border-radius:5vh 0px 0px 0px;
+    transition:border-color .3s linear
+   }
+
+   div.title {
+    display: block; 
+    margin-bottom: .2vh;
+    width: 100%;
+    padding:0px 3vh;
+    font-weight:bold;
+    font-size:2vh;
+    line-height:100%;
+    text-decoration:none;
+    color:#ffffff;
+    background: linear-gradient(to top, #00007f, #0000ff);
+    outline:none;
+    border:.4vh solid #000090;
+    border-bottom:.5vh solid #000080;
+    border-radius:0px 0px 0px 0px;
+    transition: border-color .3s linear;
+    text-align: center;
+   }
+ 
+   acanvas.main {
+    width: 120vh;
+    height: 80vh;
+    border: none;
+    padding: 0px;
+    margin: 0px;
+   }
+
+   adiv.canvasOutline {
+    border: 6px solid red;
+    width: 120vh;
+    height: 80vh;
+    padding: 0px;
+    margin: 0px;
+    margin-left: 38vh;
+   }
+
+   div.partsList {
+    border: 6px solid red;
+    width: 30vh;
+    height: 80vh;
+    padding: 0px;
+    margin: 0px;
+    font-size: 2vh;
+    float: left;
+    overflow-y: scroll;
+   }
+
+   canvas.canvasIcon {
+    border: 0px;
+    margin: 0px;
+    padding: 0px;
+    width: 3.5vh;
+    height: 3.5vh; 
+   }
+
+   div.docsDiv {
+    display: block;
+    border-top: .5vh solid red;
+    width:100%;
+   }
+
+   div.docsContainer {
+    margin: 1vh;
+    font-size: 1.2vh;
+   }
+
+   div.canvasDiv {
+    display: none;
+    border-top: .5vh solid red;
+    width:100%;
+   }
+
+   div.codeDiv {
+    display: none;
+    border-top: .5vh solid red;
+    width:100%;
+   }
+
+   div.trackDiv {
+    display: none;
+    border-top: .5vh solid red;
+    width:100%;
+   }
+
+   textarea {
+    width: 95%;
+    height: 70vh;
+   }
+
+   div.smalltext {
+    font-size: 1.2vh;
+   }
+  </style>
+  <script type="text/javascript" src="defs.js"></script>
+  <script type="text/javascript" src="trackbuilderxml.js"></script>
+  <script>
+
+   //Canvas Globals
+   var scale = 1.0;
+   var scalePrecision = 1;
+   var currentPan = {}
+   currentPan.x = 0;
+   currentPan.y = 0;
+   var previousPosX = 0;
+   var previousPosY = 0;
+   var cursorPosX = 0;
+   var cursorPosY = 0;
+   var mouseDownOnCanvas = false;
+   var objectNumber = 0;
+   //var objectHeight = 1;
+
+   //Code Globals
+   var itemList = [];
+
+   window.onload=function(){
+    makeCanvasVisible();
+    initListener();
+    readObjects();
+    makeDocsVisible();
+   }
+
+   function quickRound(num, precision = 0) {
+    var p = Math.pow(10, precision);
+    return Math.round(num * p) / p;
+   }
+
+  function makeDocsVisible() {
+    document.getElementById("canvasDiv").style.display = "none";
+    document.getElementById("codeDiv").style.display = "none";
+    document.getElementById("trackDiv").style.display = "none";
+    document.getElementById("docsDiv").style.display = "block";
+   }
+
+   function makeCanvasVisible() {
+    document.getElementById("docsDiv").style.display = "none";
+    document.getElementById("codeDiv").style.display = "none";
+    document.getElementById("trackDiv").style.display = "none";
+    document.getElementById("canvasDiv").style.display = "block";
+   }
+
+   function makeCodeVisible() {
+    document.getElementById("docsDiv").style.display = "none";
+    document.getElementById("canvasDiv").style.display = "none";
+    document.getElementById("trackDiv").style.display = "none";
+    document.getElementById("codeDiv").style.display = "block";
+   }
+
+   function makeTrackVisible() {
+    document.getElementById("docsDiv").style.display = "none";
+    document.getElementById("canvasDiv").style.display = "none";
+    document.getElementById("codeDiv").style.display = "none";
+    document.getElementById("trackDiv").style.display = "Block";
+   }
+
+   function initListener() {
+    var canvas = document.getElementById("myCanvas");
+     canvas.width = canvas.getBoundingClientRect().width
+     canvas.height = canvas.getBoundingClientRect().height;
+    var scaleMultiplier = 0.5;
+
+    // Add button event listeners
+    document.getElementById("plus").addEventListener("click", function() {
+      if (scale < 128) {
+       scale /= scaleMultiplier;
+       currentPan.x /= scaleMultiplier;
+       currentPan.y /= scaleMultiplier;
+       draw(scale, currentPan);
+      }	
+      if (scale < 1) {scalePrecision = 0;} 
+      if (scale >= 1) {scalePrecision = 1;} 
+      if (scale >= 16)  {scalePrecision = 2;} 
+      if (scale == 128) {scalePrecision = 3;}
+    }, false);
+
+    document.getElementById("minus").addEventListener("click", function() {
+     if (scale > 0.128) {
+      scale *= scaleMultiplier;
+      currentPan.x *= scaleMultiplier;
+      currentPan.y *= scaleMultiplier;	
+      draw(scale, currentPan);
+     }
+     if (scale <= 64) {scalePrecision = 2;}
+     if (scale <= 8) {scalePrecision = 1;}
+     if (scale < 1) {scalePrecision = 0;}
+    }, false);
+
+    // Add event listeners to handle screen drag
+    canvas.addEventListener("mousedown", function(evt) {
+     if (evt.button == 0) {mouseDownOnCanvas = "left";}
+     if (evt.button == 1) {mouseDownOnCanvas = "middle"; document.getElementById('panOn').checked = true}
+
+     previousPosX = evt.clientX - currentPan.x;
+     previousPosY = evt.clientY - currentPan.y;
+    });
+
+    canvas.addEventListener("mouseup", function(evt) {
+     if(mouseDownOnCanvas == "middle") {document.getElementById('panOn').checked = false}
+     mouseDownOnCanvas = false;
+    });
+
+    canvas.addEventListener("click", function(evt) {
+     if (!document.getElementById('panOn').checked) {
+      if(document.getElementById('snapOn').checked) {
+       var tmpPosx = quickRound(cursorPosX, 0);
+       var tmpPosy = parseFloat(document.getElementById("objectHeight").value);
+       var tmpPosz = quickRound(cursorPosY, 0);
+      } else {	
+       var tmpPosx = quickRound(cursorPosX, scalePrecision);
+       var tmpPosy = parseFloat(document.getElementById("objectHeight").value);
+       var tmpPosz = quickRound(cursorPosY, scalePrecision);
+      }
+      var itemListJSON = "";
+      if(document.getElementById('autoHeightOn').checked) {
+       if(typeof itemDefs[objectNumber].heightoptions != "undefined") {
+        if (itemDefs[objectNumber].heightoptions[document.getElementById('heightOptions').value].type == "changeafter") {
+         itemList.push({"item":itemDefs[objectNumber].name, "xpos":tmpPosx, "ypos":tmpPosy, "zpos":tmpPosz});
+	 tmpPosy += Number(itemDefs[objectNumber].heightoptions[document.getElementById('heightOptions').value].value);
+         document.getElementById('objectHeight').value = tmpPosy;
+        } else {
+         tmpPosy += Number(itemDefs[objectNumber].heightoptions[document.getElementById('heightOptions').value].value);
+         itemList.push({"item":itemDefs[objectNumber].name, "xpos":tmpPosx, "ypos":tmpPosy, "zpos":tmpPosz});
+         document.getElementById('objectHeight').value = tmpPosy;
+        }
+       } else {
+        itemList.push({"item":itemDefs[objectNumber].name, "xpos":tmpPosx, "ypos":tmpPosy, "zpos":tmpPosz});
+       }
+      } else {
+       itemList.push({"item":itemDefs[objectNumber].name, "xpos":tmpPosx, "ypos":tmpPosy, "zpos":tmpPosz});
+      }
+      //document.getElementById('JSONTrack').innerHTML = JSON.stringify(itemList, null,1);
+      itemListJSON = JSON.stringify(itemList);
+      itemListJSON = itemListJSON.replace("[{", "[\n {");
+      itemListJSON = itemListJSON.replace(/},/gm, "},\n ");
+      itemListJSON = itemListJSON.replace("}]", "}\n]");
+      document.getElementById('JSONTrack').value = itemListJSON;
+     }
+    });
+
+    canvas.addEventListener("mouseover", function(evt) {
+     if(mouseDownOnCanvas == "middle") {document.getElementById('panOn').checked = false}
+     mouseDownOnCanvas = false;
+    });
+
+    canvas.addEventListener("mouseout", function(evt) {
+     document.getElementById('status').innerHTML = "0, 0" 
+     mouseDownOnCanvas = false;
+    });
+
+    canvas.addEventListener("mousemove", function(evt) {
+     if ((mouseDownOnCanvas == "left" && document.getElementById('panOn').checked)  || mouseDownOnCanvas == "middle") {
+      currentPan.x = evt.clientX - previousPosX;
+      currentPan.y = evt.clientY - previousPosY;
+      document.getElementById('currentPan').innerHTML = (((currentPan.x / scale)  / 10) * -1) + ', ' + ((currentPan.y / scale) / 10);
+     }
+     var canvasPos = canvas.getBoundingClientRect();
+     cursorPosX = ((((evt.clientX - canvasPos.left - currentPan.x) - (canvas.width / 2 )) / scale) / 10);
+     cursorPosY = ((((canvas.height / 2 ) - (evt.clientY - canvasPos.top - currentPan.y)) / scale) / 10);
+     if (document.getElementById('snapOn').checked) { 
+      document.getElementById('cursorPos').innerHTML = quickRound(cursorPosX, 0) +  ', ' + quickRound(cursorPosY, 0); 
+      document.getElementById('status').innerHTML = quickRound(((((evt.clientX - canvasPos.left) - (canvas.width / 2 )) / scale) / 10), 0) +  ', ' + quickRound(((((canvas.height / 2 ) - (evt.clientY - canvasPos.top)) / scale) / 10), 0);
+     } else {
+      document.getElementById('cursorPos').innerHTML = quickRound(cursorPosX, scalePrecision) +  ', ' + quickRound(cursorPosY, scalePrecision); 
+      document.getElementById('status').innerHTML = quickRound(((((evt.clientX - canvasPos.left) - (canvas.width / 2 )) / scale) / 10), scalePrecision) +  ', ' + quickRound(((((canvas.height / 2 ) - (evt.clientY - canvasPos.top)) / scale) / 10), scalePrecision);
+     }
+     draw(scale, currentPan); 
+    });
+    draw(scale, currentPan);
+   };
+
+   function readObjects() {
+    var canvas;
+    var context;
+    var canvasName;
+    var scale = 1;
+    var boxSize = 10;
+    for (var i = 0; i <  itemDefs.length; i++) {
+     canvasName = "canvas-" + itemDefs[i].name;
+     document.getElementById('partsListTable').innerHTML += "<tr id=\"partNumber" + i + "\"><td><canvas class =\"canvasIcon\" id=\"" + canvasName + "\" height=\"500px\" width=\"500px\"></canvas></td><td>" + itemDefs[i].name + "</td></tr>";
+    }
+    for (var i = 0; i <  itemDefs.length; i++) {
+     document.getElementById("partNumber" + i).addEventListener("click", function() {selectPart(this.id)});
+     for (var j = 0; j < itemDefs[i].drawicon.length; j++) { 
+      if (itemDefs[i].drawicon[j].type == "box") {
+       if(itemDefs[i].drawicon[j].width >= itemDefs[i].drawicon[0].height)
+       {
+        scale = 500 / itemDefs[i].drawicon[j].width;
+        boxSize = itemDefs[i].drawicon[j].width;
+       }
+       else 
+       {
+        scale = 500 / itemDefs[i].drawicon[j].height;
+        boxSize = itemDefs[i].drawicon[j].height;
+       }
+      }
+     }
+     for (var j = 0; j < itemDefs[i].drawicon.length; j++) {
+      canvasName = "canvas-" + itemDefs[i].name;
+      canvas = document.getElementById(canvasName);
+      context = canvas.getContext("2d");
+      context.beginPath();
+      if (itemDefs[i].drawicon[j].type == "rect"  || itemDefs[i].drawicon[j].type == "box") 
+      {context.rect((itemDefs[i].drawicon[j].x + (boxSize / 2)) * scale,(itemDefs[i].drawicon[j].z + (boxSize / 2)) * scale, itemDefs[i].drawicon[j].width * scale, itemDefs[i].drawicon[j].height * scale);} 
+      if (itemDefs[i].drawicon[j].type == "arc") 
+      {context.arc((itemDefs[i].drawicon[j].x + (boxSize / 2)) * scale,(itemDefs[i].drawicon[j].z + (boxSize / 2)) * scale, itemDefs[i].drawicon[j].radius * scale, ((itemDefs[i].drawicon[j].start - 90) * Math.PI) / 180, ((itemDefs[i].drawicon[j].finish - 90) * Math.PI) / 180);}
+      if (itemDefs[i].drawicon[j].type == "line") 
+      {
+       context.moveTo((itemDefs[i].drawicon[j].startx + (boxSize / 2)) * scale,(itemDefs[i].drawicon[j].startz + (boxSize / 2)) * scale) 
+       context.lineTo((itemDefs[i].drawicon[j].finishx + (boxSize / 2)) * scale,(itemDefs[i].drawicon[j].finishz + (boxSize / 2)) * scale) 
+      }
+      context.lineWidth = 25;
+      context.strokeStyle = itemDefs[i].drawicon[j].color;
+      context.stroke();
+     }
+    }
+   }
+
+   function selectPart(evt){
+    objectNumber = evt.substring(10, 10 + evt.length);
+    document.getElementById('objectNum').innerHTML = objectNumber + " : " +  itemDefs[objectNumber].name;
+    document.getElementById('heightOptions').innerHTML = "";
+    if (typeof itemDefs[objectNumber].heightoptions != "undefined")
+    {
+     for (var i = 0; i < itemDefs[objectNumber].heightoptions.length; i++) {
+      document.getElementById('heightOptions').innerHTML += "<option value=\"" + i + "\">" + itemDefs[objectNumber].heightoptions[i].option + "</option>";
+     }
+    }
+   }
+
+   function draw(scale, currentPan) {
+    var canvas = document.getElementById("myCanvas");
+    var context = canvas.getContext("2d");
+    var translatePosX = currentPan.x;
+    var translatePosY = currentPan.y
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    translatePosX += (canvas.width / 2) 
+    translatePosY += (canvas.height / 2) 
+    // Draw Grid
+    context.save();
+    context.scale(scale, scale);      
+    drawgrid(canvas, context, scale, currentPan);
+    context.restore();
+    // Set Canvas for Objects and Cursor
+    context.save();
+    context.translate(translatePosX, translatePosY);
+    context.scale(scale, scale);      
+    // Draw Map Objects
+    drawmapob(canvas,context);
+    //Draw Cursor Object
+    drawcursorob(canvas, context);
+  
+    // Draw CrossHair
+    context.restore();
+    context.fillRect((canvas.width / 2) - 10,(canvas.height / 2) - 2,20,4);
+    context.fillRect((canvas.width / 2) - 2,(canvas.height / 2) - 10,4,20);
+   }
+
+   function drawgrid(canvas, context, scale, currentPan) {
+    var edgex = (((canvas.width / 2) + currentPan.x) * -1) / scale;
+    var edgey = ((canvas.height / 2) + currentPan.y) / scale;
+    var edgexoffset = (Math.ceil(edgex / 10) * 10) - edgex;
+    var edgeyoffset = edgey - (Math.floor(edgey / 10) * 10);
+    for (var i = edgexoffset; i < canvas.width / scale; i += 10) {
+     context.beginPath();
+     context.moveTo(i, 0);
+     context.lineTo(i, canvas.height / scale);
+     context.lineWidth = 2;
+     context.strokeStyle = "#aaaaaa";
+     context.stroke(); 
+    }
+    for (var i = edgeyoffset; i < canvas.height / scale; i += 10) {
+     context.beginPath();
+     context.moveTo(0, i);
+     context.lineTo(canvas.width / scale, i);
+     context.lineWidth = 2;
+     context.strokeStyle = "#aaaaaa";
+     context.stroke(); 
+    }
+   }
+
+   function drawmapob(canvas, context) {
+    // Draw Map Center
+    context.beginPath();
+    context.arc(0, 0, 10, 0, 2 * Math.PI);
+    context.stroke();
+    // For each object placed
+    for(var i = 0; i < itemList.length; i++) {
+     // Find the ItemDef for the drawicon 
+     for (var j = 0; j < itemDefs.length; j++) {
+      if (itemDefs[j].name == itemList[i].item) {
+       // Then draw each shape for the icon
+       for (var k = 0; k < itemDefs[j].drawicon.length; k++) {
+        context.beginPath();
+        if (itemDefs[j].drawicon[k].type == "rect") {
+	 context.rect((itemDefs[j].drawicon[k].x + itemList[i].xpos) * 10, (itemDefs[j].drawicon[k].z - itemList[i].zpos) * 10, itemDefs[j].drawicon[k].width * 10, itemDefs[j].drawicon[k].height * 10);
+	}
+
+
+        if (itemDefs[j].drawicon[k].type == "arc") {
+	 context.arc((itemDefs[j].drawicon[k].x + itemList[i].xpos) * 10, (itemDefs[j].drawicon[k].z - itemList[i].zpos) * 10, itemDefs[j].drawicon[k].radius * 10, ((itemDefs[j].drawicon[k].start - 90) * Math.PI) / 180, ((itemDefs[j].drawicon[k].finish - 90) * Math.PI) / 180);
+        }
+
+
+        if (itemDefs[j].drawicon[k].type == "line") {
+         context.moveTo((itemDefs[j].drawicon[k].startx + itemList[i].xpos) * 10, (itemDefs[j].drawicon[k].startz - itemList[i].zpos) * 10)
+	 context.lineTo((itemDefs[j].drawicon[k].finishx + itemList[i].xpos) * 10, (itemDefs[j].drawicon[k].finishz - itemList[i].zpos) * 10);
+        }
+         context.lineWidth = 4;
+         context.strokeStyle = itemDefs[j].drawicon[k].color;
+         context.stroke();
+       }
+      }
+     }
+    }
+   }
+
+   function drawcursorob(canvas, context) {
+    document.getElementById('objectNum').innerHTML = objectNumber + " : " +  itemDefs[objectNumber].name;    
+    if (document.getElementById('snapOn').checked) {
+     for (var i = 0; i < itemDefs[objectNumber].drawicon.length; i++) {
+      context.beginPath();
+      if (itemDefs[objectNumber].drawicon[i].type == "rect" || itemDefs[objectNumber].drawicon[i].type == "box") {
+        context.rect((quickRound(cursorPosX, 0) * 10) + (itemDefs[objectNumber].drawicon[i].x * 10),(quickRound(cursorPosY * -1, 0) * 10) + (itemDefs[objectNumber].drawicon[i].z * 10), (itemDefs[objectNumber].drawicon[i].width * 10), (itemDefs[objectNumber].drawicon[i].height *10));
+      }
+      if (itemDefs[objectNumber].drawicon[i].type == "arc") {
+        context.arc((quickRound(cursorPosX, 0) * 10) + (itemDefs[objectNumber].drawicon[i].x * 10),(quickRound(cursorPosY * -1, 0) * 10) + (itemDefs[objectNumber].drawicon[i].z * 10),itemDefs[objectNumber].drawicon[i].radius * 10, ((itemDefs[objectNumber].drawicon[i].start - 90) * Math.PI) / 180, ((itemDefs[objectNumber].drawicon[i].finish - 90) * Math.PI) / 180);
+      }
+      if (itemDefs[objectNumber].drawicon[i].type == "line") {
+        context.moveTo((quickRound(cursorPosX, 0) * 10) + (itemDefs[objectNumber].drawicon[i].startx * 10),(quickRound(cursorPosY * -1, 0) * 10) + (itemDefs[objectNumber].drawicon[i].startz * 10));
+        context.lineTo((quickRound(cursorPosX, 0) * 10) + (itemDefs[objectNumber].drawicon[i].finishx * 10),(quickRound(cursorPosY * -1, 0) * 10) + (itemDefs[objectNumber].drawicon[i].finishz * 10));
+      }
+      context.lineWidth = 4;
+      context.strokeStyle = "#00aa00";
+      context.stroke();
+     }
+    } else {
+     for (var i = 0; i < itemDefs[objectNumber].drawicon.length; i++) {
+      context.beginPath();
+      if (itemDefs[objectNumber].drawicon[i].type == "rect" || itemDefs[objectNumber].drawicon[i].type == "box") {
+        context.rect((quickRound(cursorPosX, scalePrecision) * 10) + (itemDefs[objectNumber].drawicon[i].x * 10),(quickRound(cursorPosY * -1, scalePrecision) * 10) + (itemDefs[objectNumber].drawicon[i].z * 10), (itemDefs[objectNumber].drawicon[i].width * 10), (itemDefs[objectNumber].drawicon[i].height *10));
+      }
+      if (itemDefs[objectNumber].drawicon[i].type == "arc") {
+        context.arc((quickRound(cursorPosX, scalePrecision) * 10) + (itemDefs[objectNumber].drawicon[i].x * 10),(quickRound(cursorPosY * -1, scalePrecision) * 10) + (itemDefs[objectNumber].drawicon[i].z * 10),itemDefs[objectNumber].drawicon[i].radius * 10, ((itemDefs[objectNumber].drawicon[i].start - 90) * Math.PI) / 180, ((itemDefs[objectNumber].drawicon[i].finish - 90) * Math.PI) / 180);
+      }
+      if (itemDefs[objectNumber].drawicon[i].type == "line") {
+        context.moveTo((quickRound(cursorPosX, scalePrecision) * 10) + (itemDefs[objectNumber].drawicon[i].startx * 10),(quickRound(cursorPosY * -1, scalePrecision) * 10) + (itemDefs[objectNumber].drawicon[i].startz * 10));
+        context.lineTo((quickRound(cursorPosX, scalePrecision) * 10) + (itemDefs[objectNumber].drawicon[i].finishx * 10),(quickRound(cursorPosY * -1, scalePrecision) * 10) + (itemDefs[objectNumber].drawicon[i].finishz * 10));
+      }
+      context.lineWidth = 4;
+      context.strokeStyle = "#00aa00";
+      context.stroke();
+     }
+    }
+   }
+
+   //JSON Code
+   function updateItemList() {
+   try {
+    JSON.parse(document.getElementById('JSONTrack').value);
+   } catch (e) {
+        alert("Invalid JSON!");
+    }
+    itemList = JSON.parse(document.getElementById('JSONTrack').value);
+    draw(scale, currentPan);
+   }
+
+   //Track Code
+   function GenerateXML() {
+    var instanceID = 1;
+    var generatedBlueprintXML = ""
+    if (document.getElementById('exportFileName').value != "") {
+     var exportFileNameStr = document.getElementById('exportFileName').value;
+     exportFileNameStr = exportFileNameStr.replace (/[_]....[.]track$/i, '');
+     exportFileNameStr = exportFileNameStr.replace (/[.]track$/i, '');
+     TrackBuildXMLHeader[4] = "    <str>" + exportFileNameStr + "</str>\n";
+    }
+   if (document.getElementById('exportTrackName').value != "") {
+     var exportTrackNameStr = document.getElementById('exportTrackName').value;
+     TrackBuildXMLHeader[8] = "  <name>" + exportTrackNameStr + "</name>\n";
+    }
+   if (document.getElementById('objectStartNum').value != 1) {
+     var instanceID = document.getElementById('objectStartNum').value;
+    }
+    for(i = 0; i < 13; i++) {
+     generatedBlueprintXML += TrackBuildXMLHeader[i];
+    }
+    generatedBlueprintXML += "\n";
+    for (var i = 0; i < itemList.length; i++) {
+     for (var j = 0; j < itemDefs.length; j++) {
+      if (itemDefs[j].name == itemList[i].item) {
+       for (var k = 0; k < itemDefs[j].def.length; k++) {
+        abXPos = parseFloat(itemDefs[j].def[k].xpos) + parseFloat(itemList[i].xpos);
+        abYPos = parseFloat(itemDefs[j].def[k].ypos) + parseFloat(itemList[i].ypos);
+        abZPos = parseFloat(itemDefs[j].def[k].zpos) + parseFloat(itemList[i].zpos);
+        generatedBlueprintXML += '    <TrackBlueprint xsi:type="TrackBlueprintFlag">' + "\n";
+        generatedBlueprintXML += '      <itemID>'+ itemDefs[j].def[k].itemID + '</itemID>' + "\n";
+        generatedBlueprintXML += '      <instanceID>'+ instanceID + '</instanceID>' + "\n";
+        generatedBlueprintXML += '      <position>' + "\n"; 
+        generatedBlueprintXML += '        <x>' +  quickRound(abXPos, 3)  + '</x>' + "\n"; 
+        generatedBlueprintXML += '        <y>' +  quickRound(abYPos, 3)  + '</y>' + "\n"; 
+        generatedBlueprintXML += '        <z>' +  quickRound(abZPos, 3)  + '</z>' + "\n"; 
+        generatedBlueprintXML += '      </position>' + "\n"; 
+        generatedBlueprintXML += '      <rotation>' + "\n"; 
+        generatedBlueprintXML += '        <x>' +  quickRound(itemDefs[j].def[k].xrot, 3)  + '</x>' + "\n"; 
+        generatedBlueprintXML += '        <y>' +  quickRound(itemDefs[j].def[k].yrot, 3)  + '</y>' + "\n"; 
+        generatedBlueprintXML += '        <z>' +  quickRound(itemDefs[j].def[k].zrot, 3)  + '</z>' + "\n"; 
+        generatedBlueprintXML += '      </rotation>' + "\n"; 
+        generatedBlueprintXML += '      <purpose>' + itemDefs[j].def[k].purpose +'</purpose>' + "\n";
+        generatedBlueprintXML += '    </TrackBlueprint>' + "\n";
+        document.getElementById('generationProgress').innerHTML = "Parts read: " + (i + 1)  + " / " + itemList.length + ", Objects Written: " + (instanceID);
+        instanceID++;
+       }
+      }
+     }
+    }
+    document.getElementById('xmlout').value += "\n"; 
+    TrackBuildXMLFooter[1] = '  <lastTrackItemID>' + instanceID + '</lastTrackItemID>' + "\n";
+
+    for(i = 0; i < 4; i++)
+    {
+     generatedBlueprintXML += TrackBuildXMLFooter[i];
+    }
+    document.getElementById('xmlout').value = "";
+    document.getElementById('xmlout').value = generatedBlueprintXML
+   }
+
+   function saveTrackJSON(){
+    var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(itemList));
+    var saveTrackElem = document.getElementById('downloadTrackJSON');
+    saveTrackElem.setAttribute("href",dataStr);
+    saveTrackElem.setAttribute("download","track.ltb");
+    saveTrackElem.click();
+   }
+
+   function saveTrackXML(){
+    var dataStr = "data:xml/plain;charset=utf-8," + encodeURIComponent(document.getElementById('xmlout').value);
+    var saveTrackElem = document.getElementById('downloadTrackXML');
+    saveTrackElem.setAttribute("href",dataStr);
+    if (document.getElementById('exportFileName').value != "") {
+     var exportFileNameStr = document.getElementById('exportFileName').value;
+     if (exportFileNameStr.match(/[_]....$/i)) {
+      exportFileNameStr = exportFileNameStr + ".track";
+     }
+     else {
+      if (!exportFileNameStr.match(/[_]....[.]track$/i)) {
+       exportFileNameStr = exportFileNameStr + "_0001.track";
+      }
+     }
+      saveTrackElem.setAttribute("download", exportFileNameStr);
+    }
+    else {
+     saveTrackElem.setAttribute("download","track.track");
+    }
+    saveTrackElem.click();
+   }
+
+
+
+  </script>
+ </head>
+ <body>
+  <div class="title">Aniseed's Liftoff Track Builder Concept v0.5</div>
+  <div class="menu" id="menu">
+   <ul id="maintabs">
+    <li id="tab1" class="selected"><span class="maintab" onClick="makeDocsVisible();">Docs</span></li>
+    <li id="tab2"><span class="maintab" onClick="makeCanvasVisible();">Canvas</span></li>
+    <li id="tab3"><span class="maintab" onClick="makeCodeVisible();">Code</span></li>
+    <li id="tab4"><span class="maintab" onClick="saveTrackJSON();"><a id="downloadTrackJSON" style="display:none"></a>Save Track Code</span></li>
+    <li id="tab5"><span class="maintab" onClick="makeTrackVisible();">Export Track</span></li>
+   </ul>
+  </div>
+  <div class="docsDiv" id="docsDiv">
+   <div class="docsContainer">
+   <h1>How to use this program</h1>
+   Create new blank track in Liftoff, fill the track file with the track data built with this program.<br />
+   This is not intended to create complete tracks with full details. This lets you create the main body of the track.<br />
+   Once the body of the track is built with the available track peieces, the details can be added in the Liftoff Track Builder in-game.
+   <h1>Quick Start:</h1>
+   <p>
+   - First, Click on the "Canvas" tab.<br />
+   - Click to select on the Part you wish to place from the Left Hand side.<br />
+   - Click on the Canvas where you wish to place it.<br />
+   - Hold down the Middle Mouse Button to pan.<br />
+   - If you do not have a Middle Mouse Button, click the "Pan" tickbox to pan. Drag with your Left Hand Mouse button.<br />
+   - Use the Zoon + and - button to Zoom.<br />
+   - 'Snap' snaps to grid.<br />
+   - AutoHeight automatically changes the placement height for you when you place height-adjusting track peices (make a note of the piece you have and which direction it's facing).<br />
+   - With AutoHeight you can select the direction of the AutoHeight, but not the direction of the track peice. You need to change the track piece to change it's direction.<br />
+   - Track height will go from Green (lowest) to Amber (middle) to Red (heighest)<br />
+   - A small circle is placed in the Middle of the canvas for panning reference.<br />
+   - Cursor Pos is where your mouse pointer is on the Map. This shows the X and Z coordinate.<br />
+   - Canvas Pos is where your mouse pointer is on the Canvas. This shows the X and Z coordinate.<br />
+   - Pan Cntr is where the Center of the Map is from the Pan Position. This shows the X and Z coordinate.<br />
+   - The Y coordinate is the Height field.
+   - Object Number is the item you have currently selected for placing.<br />
+   </p>
+   <h1>Undo the last placement:</h1>
+   <p>
+    Every track piece placement event you make is stored as an Object in the "Code" tab.<br />
+    The "Code" tab is in JSON format.<br />
+    The JSON format must always start with '[' and end with ']'. <br />
+    Each Object takes the format of:
+    <pre>
+ {"item":"ItemName","xpos":0,"ypos":0,"zpos":0}</pre>
+    Each object should end with a comma, except for the last object.<br />
+    If you have placed three objects you may see:
+    <pre>
+ [
+  {"item":"NSflat","xpos":-10,"ypos":1,"zpos":-10},
+  {"item":"NSflat","xpos":-10,"ypos":1,"zpos":0},
+  {"item":"NSflat","xpos":-10,"ypos":1,"zpos":10}
+ ]</pre>
+    In this case '{"item":"NSflat","xpos":-10,"ypos":1,"zpos":10}' would be the last item you placed. To unplace it, simply remove the line like so:
+    <pre>
+ [
+  {"item":"NSflat","xpos":-10,"ypos":1,"zpos":-10},
+  {"item":"NSflat","xpos":-10,"ypos":1,"zpos":0},
+ ]</pre>
+    And then remove the last comma like so:
+    <pre>
+ [
+  {"item":"NSflat","xpos":-10,"ypos":1,"zpos":-10},
+  {"item":"NSflat","xpos":-10,"ypos":1,"zpos":0}
+ ]
+    </pre>
+    Last of all click 'Update' at the bottom of the screen.
+   </p>
+   <h1>Undo another placement</h1>
+   <p>
+    In the example of:
+   <pre>
+ [
+  {"item":"NSflat","xpos":-10,"ypos":1,"zpos":-10},
+  {"item":"NSflat","xpos":-10,"ypos":1,"zpos":0},
+  {"item":"NSflat","xpos":-10,"ypos":1,"zpos":10}
+ ]</pre>
+   simply remove the object which is in the wrong place. In Canvas View you can use the Cursor Pos to locate the unwanted Object's position. To remove the object at position "-10, 1, 0", the JSON object would become:
+   <pre>
+ [
+  {"item":"NSflat","xpos":-10,"ypos":1,"zpos":-10},
+  {"item":"NSflat","xpos":-10,"ypos":1,"zpos":10}
+ ]
+   </pre>
+    In this example, the last object has not changed, therefore no comma's need to be added or removed. Click 'Update' at the bottom of the screen.
+   </p>
+   <h1>Edit a track placement</h1>
+   <p>
+    In the example of:
+   <pre>
+ [
+  {"item":"NSflat","xpos":-10,"ypos":1,"zpos":-10},
+  {"item":"NSflat","xpos":-8,"ypos":1,"zpos":0},
+  {"item":"NSflat","xpos":-10,"ypos":1,"zpos":10}
+ ]</pre>
+   Maybe you want the x coordinate (xpos) in the second object to change from -8 to -10. Simply update the code:
+   <pre>
+ [
+  {"item":"NSflat","xpos":-10,"ypos":1,"zpos":-10},
+  {"item":"NSflat","xpos":-10,"ypos":1,"zpos":0},
+  {"item":"NSflat","xpos":-10,"ypos":1,"zpos":10}
+ ]</pre>
+   Then and click 'Update'. Note that if you wnat to change to part type from 'NSflat' (in this example), you can also update the item name.
+   <h1>The Canvas looks squished, especially after a browser resize</h1>
+   Refresh the browser
+   <h1>Ok, well I did that, but now the Canvas has lost everything!</h1>
+   The code should still be intact. Click on 'Code' and then 'Update' to re-draw the canvas.
+   <h1>Save the track</h1>
+   Simply click "Save Track Code" and choose where to save the file if your broser prompts. IF not it is probably saved in yoru default 'Downloads' location.
+   <h1>Load the track</h1>
+   Open the saved .ltb file in a text editor (such as notepad), select all the content and copy to clipboard. Paste the contents in to the 'Code' section and click 'Update'
+   <h1>But it's looks hard to read afterwards</h1>
+   Place any track item in the Canvas and the code will re-format itself again. I will work on this in future.
+   <h1>How to I play/edit my track in Liftoff?</h1>
+   <h2>Short answer for the technical</h2>
+   The Steam Liftoff Track Id Folder ({Steam_home}\steamapps\common\Liftoff\Liftoff_Data\Tracks\{id}) contains your saved track files. Choose one (or create a new one) to overwrite.
+   Fill in the track file name (The file you want to replace in your Lioftoff Track Id Folder).<br />
+   Give the track a new name, or keep the existing one.<br />
+   Overwrite the file.<br />
+   If you want to edit the file manually by copying and pasting the contents of the XML, there is a "Copy to Clipboard" option.
+   <h2>Long answer for the non-tenchincal</h2>
+   Go in to your Liftoff Tracks folder. This is usually located:<br />
+   C:\Program Files (x86)\Steam\steamapps\common\Liftoff\Liftoff_Data\Tracks (Win)<br />
+   ~/Library/Application Support/Steam/steamapps/common/Liftoff/Liftoff_Data/Tracks (Mac)<br />
+   ~/.steam/steam/SteamApps/common/Liftoff/Liftoff_Data/Tracks (Linux)<br />
+   Make a note of every folder name (Track Id) inside (Yes I know... it's a pain sorry)<br />
+   If you are confident enough to read XML, you can open each Track Id Folder and then the .track file inside it in a text editor such as Notepad. In the track file will be a &lt;name&gt; line with the name of the track. I recommend creading a document which notes each folder name and each corresponding track name. Then you don't have to go through this every time as long as the document is kept up to date with each new track. It should be safe to save this document in your Liftoff Tracks folder for easy access.<br />
+   Open the Liftoff game, Go to the game's track builder, Create a new Blank track, Give it a name and Save it.<br />
+   Go back to your Liftoff Tracks folder and you will notice a new Track Id Folder. I recommend checking the .track file inside it inside a text editor to be sure it is the correct one.<br />
+   Copy the Track Id filename.<br />
+   Under the Aniseed Liftoff Track Builder, click on "Export Track".<br />
+   Fill in the track file name (the blank one you just created).<br />
+   Give the track a new name, or keep the existing one.<br />
+   Save the track file.<br />
+   Overwrite the file of the same name in your Steam Liftoff Track Id folder. Be careful not to overwrite a track you didn't want to replace.
+   <h1>I am kind of technical, can I contribute to the Liftoff defs.js file to create new track pieces</h2>
+   Yes, I could really use the help! Feel free to contact me.
+   <h1>Can I help you build tracks?</h2>
+   Yes, I could really use the help! Feel free to contact me.  
+   <h1>I want to edit, re-distribute, change, re-invent etc your code.</h2>
+   Sure. I am not protective of my code in any sense. You don't even need to credit me if you re-use my code! I only have two conditions. 1) That you don't deny this is the original project if asked. 2) That if you are helping me to work on defs.js, you do not create public tracks with unfinished track pieces. I don't want people's experience of new tracks ruined by spoilers unless they are involved in the project :).
+   <br />
+   <h1>Please Report any issues to aniseedwolf@gmail.com</h1>
+   </div>
+  </div>
+  <div class="canvasDiv" id="canvasDiv">
+   <div class="canvasNums" id="canvasNums">
+    <span class="canvasNumLabel">Cursor Pos:</span><span class="cursonNumData" id="cursorPos">0,0</span>
+    <span class="canvasNumLabel">Canvas Pos:</span><span class="cursonNumData" id="status">0,0</span>
+    <span class="canvasNumLabel">Pan Cntr:</span><span class="cursonNumData" id="currentPan">0,0</span>
+    <span class="canvasNumLabel">Object Number:</span><span class="cursonNumData" id="objectNum"></span>
+   </div>
+   <div class="partsList">
+    <table id="partsListTable">
+    </table>
+   </div>   
+   <div class="canvasOutline">
+     <canvas class="main" id="myCanvas"></canvas>
+   </div>
+   Zoom: <input type="button" id="plus" value="+"><input type="button" id="minus" value="-">
+   Pan: <input type="checkbox" name="panOn" id="panOn">
+   Snap: <input type="checkbox" name="snapOn" id="snapOn" checked>
+   Height: <input type="number" id="objectHeight" name="objectHeight" step="0.1" min="1" max="200" value="1">
+   AutoHeight: <input type="checkbox" name="panOn" id="autoHeightOn" checked>
+   <select name="heightOptions" id="heightOptions">
+   </select>
+   <div>
+    You can also hold down the middle mouse button to Pan.
+   </div>
+  </div>
+  <div class="codeDiv" id="codeDiv">
+   <textarea id="JSONTrack" rows="25" cols="80"></textarea><br />
+   <button type="button" onclick="updateItemList()">Update</button><br />
+  </div>
+  <div class="trackDiv" id="trackDiv">
+   Export Track Output<br />
+   <div class="smalltext">
+    <br />
+    The File Name Can be found in &lt;Steam_Folder&gt;\steamapps\common\Liftoff\Liftoff_Data\Tracks) E.g:<br /> 
+    C:\Program Files (x86)\Steam\steamapps\common\Liftoff\Liftoff_Data\Tracks (Win)<br />
+    ~/Library/Application Support/Steam/steamapps/common/Liftoff/Liftoff_Data/Tracks (Mac)<br />
+    ~/.steam/steam/SteamApps/common/Liftoff/Liftoff_Data/Tracks (Linux)<br>
+    Then go in to the folder/directory with the ID which was newly created when you generated a new blank track in Liftoff, that you want to overwrite. 
+    <br /><br />
+   </div>
+   File Name:&nbsp;<input type="text" id="exportFileName"/>
+   Track Name:&nbsp;<input type="text" id="exportTrackName"/>
+   Start at Object Number:&nbsp;<input type="number" id="objectStartNum" value="1"/><br>
+   <button type="button" onclick="GenerateXML()">Generate Liftoff XML</button><br />
+   <textarea id="xmlout" rows="20" cols="80"></textarea><br />
+   <button type="button" onClick="navigator.clipboard.writeText(document.getElementById('xmlout').value);">Copy to Clipboard</button>
+   <button type="button" onclick="saveTrackXML();"><a id="downloadTrackXML" style="display:none"></a>Save As Track File</button>
+   <div id="generationProgress"></div>
+  </div>
+ </body>
+</html>
