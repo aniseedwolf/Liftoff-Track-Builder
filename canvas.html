@@ -215,7 +215,7 @@
     width:100%;
    }
 
-   div.overrideFileName {
+   div.overrideGUID {
     display: none;
    }
 
@@ -606,8 +606,8 @@
 
    //Track Code
 
-   function ShowExportFileName() {
-    document.getElementById("overrideFileName").style.display = "block";
+   function ShowGUID() {
+    document.getElementById("overrideGUID").style.display = "block";
     document.getElementById("GUIDWarning").style.display = "none";
    }
 
@@ -831,26 +831,25 @@
    Place any track item in the Canvas and the code will re-format itself again. I will work on this in future.
    <h1>How to I play/edit my track in Liftoff?</h1>
    <h2>Short answer for the technical</h2>
-   The Steam Liftoff Track Id Folder ({Steam_home}\steamapps\common\Liftoff\Liftoff_Data\Tracks\{id}) contains your saved track files. Choose one (or create a new one) to overwrite.
-   Fill in the track file name (The file you want to replace in your Lioftoff Track Id Folder).<br />
-   Give the track a new name, or keep the existing one.<br />
-   Overwrite the file.<br />
+   The Steam Liftoff Track Id Folder ({Steam_home}\steamapps\common\Liftoff\Liftoff_Data\Tracks\{GUID}) contains your saved track files.
+   Let the Export tool generate a new track file name, or enter the GUID of an existing track.<br />
+   Give the track a new name.<br />
+   Create a new folder with the GUID as the folde name, or enter the existing folder and the Overwrite the existing file.<br />
    If you want to edit the file manually by copying and pasting the contents of the XML, there is a "Copy to Clipboard" option.
    <h2>Long answer for the non-tenchincal</h2>
    Go in to your Liftoff Tracks folder. This is usually located:<br />
    C:\Program Files (x86)\Steam\steamapps\common\Liftoff\Liftoff_Data\Tracks (Win)<br />
    ~/Library/Application Support/Steam/steamapps/common/Liftoff/Liftoff_Data/Tracks (Mac)<br />
    ~/.steam/steam/SteamApps/common/Liftoff/Liftoff_Data/Tracks (Linux)<br />
-   Make a note of every folder name (Track Id) inside (Yes I know... it's a pain sorry)<br />
+   Make a note of every folder name (This is known as the "GUID") inside (Yes I know... it's a pain sorry)<br />
    If you are confident enough to read XML, you can open each Track Id Folder and then the .track file inside it in a text editor such as Notepad. In the track file will be a &lt;name&gt; line with the name of the track. I recommend creading a document which notes each folder name and each corresponding track name. Then you don't have to go through this every time as long as the document is kept up to date with each new track. It should be safe to save this document in your Liftoff Tracks folder for easy access.<br />
-   Open the Liftoff game, Go to the game's track builder, Create a new Blank track, Give it a name and Save it.<br />
-   Go back to your Liftoff Tracks folder and you will notice a new Track Id Folder. I recommend checking the .track file inside it inside a text editor to be sure it is the correct one.<br />
-   Copy the Track Id filename.<br />
    Under the Aniseed Liftoff Track Builder, click on "Export Track".<br />
-   Fill in the track file name (the blank one you just created).<br />
-   Give the track a new name, or keep the existing one.<br />
+   If you want to overwrite an existing track, override the GUID with an existing Folder name.
+   Give the track a new name, or keep an existing one.<br />
    Save the track file.<br />
-   Overwrite the file of the same name in your Steam Liftoff Track Id folder. Be careful not to overwrite a track you didn't want to replace.
+   Create a new folder within the Liftoff Tracks folder.  Name the folder the same as The GUID of the track file.<br />
+   If you are replacing an existing file, enter the existing folder and the Overwrite the existing file.<br />
+   **ONLY USE GUIDs created by the Liftoff Track Builder or the Liftoff Game. Please do not make up GUIDs**<br />
    <h1>I am kind of technical, can I contribute to the Liftoff defs.js file to create new track pieces</h2>
    Yes, I could really use the help! Feel free to contact me.
    <h1>Can I help you build tracks?</h2>
@@ -898,17 +897,19 @@
     C:\Program Files (x86)\Steam\steamapps\common\Liftoff\Liftoff_Data\Tracks (Win)<br />
     ~/Library/Application Support/Steam/steamapps/common/Liftoff/Liftoff_Data/Tracks (Mac)<br />
     ~/.steam/steam/SteamApps/common/Liftoff/Liftoff_Data/Tracks (Linux)<br>
-    Then go in to the folder/directory with the ID which was newly created when you generated a new blank track in Liftoff, that you want to overwrite. 
+    Then either:<br />
+    1) Create a folder with the name the same as the GUID. Place the created track file inside it.<br />
+    2) Go in to the folder/directory with the GUID of the existing track you want to replace. Replace the file. 
     <br /><br />
    </div>
    <div class="GUIDWarning" id="GUIDWarning">
-    <button type="button" onclick="ShowExportFileName();">OverrideFileName</button>&nbsp;&nbsp;**Warning Only override if you intend to update an existing Track File**<br />
+    <button type="button" onclick="ShowGUID();">Show/Override GUID</button>&nbsp;&nbsp;**Warning Only override if you have a GUID from an existing Track File you wish to replace. Do not create your own GUID**<br />
    </div>
-   <div class="overrideFileName" id="overrideFileName">
-    File Name:&nbsp;<input type="text" id="exportFileName"/>
+   <div class="overrideGUID" id="overrideGUID">
+    GUID:&nbsp;<input type="text" style="width:25%" id="exportFileName"/>
    </div>
-   Track Name:&nbsp;<input type="text" id="exportTrackName"/>
-   Start at Object Number:&nbsp;<input type="number" id="objectStartNum" value="1"/><br>
+    Track Name:&nbsp;<input type="text" id="exportTrackName"/>
+    Start at Object Number:&nbsp;<input type="number" id="objectStartNum" value="1"/><br>
    <button type="button" onclick="GenerateXML()">Generate Liftoff XML</button><br />
    <textarea id="xmlout" rows="25" cols="80"></textarea><br />
    <button type="button" onClick="navigator.clipboard.writeText(document.getElementById('xmlout').value);">Copy to Clipboard</button>
