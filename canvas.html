@@ -215,9 +215,17 @@
     width:100%;
    }
 
+   div.overrideFileName {
+    display: none;
+   }
+
+   div.GUIDWarning {
+    display: block;
+   }
+
    textarea {
     width: 95%;
-    height: 70vh;
+    height: 60vh;
    }
 
    div.smalltext {
@@ -597,6 +605,13 @@
    }
 
    //Track Code
+
+   function ShowExportFileName() {
+    document.getElementById("overrideFileName").style.display = "block";
+    document.getElementById("GUIDWarning").style.display = "none";
+   }
+
+	 
    function GenerateXML() {
     var instanceID = 1;
     var generatedBlueprintXML = ""
@@ -606,6 +621,18 @@
      exportFileNameStr = exportFileNameStr.replace (/[.]track$/i, '');
      TrackBuildXMLHeader[4] = "    <str>" + exportFileNameStr + "</str>\n";
     }
+    else
+   {
+    var TrackGUID = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
+    .replace(/[xy]/g, function (c) {
+        const r = Math.random() * 16 | 0, 
+            v = c == 'x' ? r : (r & 0x3 | 0x8);
+       return v.toString(16);
+    });
+    TrackBuildXMLHeader[4] = "    <str>" + TrackGUID + "</str>\n";
+    document.getElementById('exportFileName').value = TrackGUID
+   }
+
    if (document.getElementById('exportTrackName').value != "") {
      var exportTrackNameStr = document.getElementById('exportTrackName').value;
      TrackBuildXMLHeader[8] = "  <name>" + exportTrackNameStr + "</name>\n";
@@ -874,11 +901,16 @@
     Then go in to the folder/directory with the ID which was newly created when you generated a new blank track in Liftoff, that you want to overwrite. 
     <br /><br />
    </div>
-   File Name:&nbsp;<input type="text" id="exportFileName"/>
+   <div class="GUIDWarning" id="GUIDWarning">
+    <button type="button" onclick="ShowExportFileName();">OverrideFileName</button>&nbsp;&nbsp;**Warning Only override if you intend to update an existing Track File**<br />
+   </div>
+   <div class="overrideFileName" id="overrideFileName">
+    File Name:&nbsp;<input type="text" id="exportFileName"/>
+   </div>
    Track Name:&nbsp;<input type="text" id="exportTrackName"/>
    Start at Object Number:&nbsp;<input type="number" id="objectStartNum" value="1"/><br>
    <button type="button" onclick="GenerateXML()">Generate Liftoff XML</button><br />
-   <textarea id="xmlout" rows="20" cols="80"></textarea><br />
+   <textarea id="xmlout" rows="25" cols="80"></textarea><br />
    <button type="button" onClick="navigator.clipboard.writeText(document.getElementById('xmlout').value);">Copy to Clipboard</button>
    <button type="button" onclick="saveTrackXML();"><a id="downloadTrackXML" style="display:none"></a>Save As Track File</button>
    <div id="generationProgress"></div>
